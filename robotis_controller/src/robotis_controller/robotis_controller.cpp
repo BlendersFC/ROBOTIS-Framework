@@ -19,6 +19,7 @@
  *
  *  Created on: 2016. 1. 15.
  *      Author: zerom
+ *      Modified: Blenders FC
  */
 
 #include <ros/package.h>
@@ -636,22 +637,25 @@ void RobotisController::msgQueueThread()
   ros::NodeHandle ros_node;
   ros::CallbackQueue callback_queue;
 
+  int robot_id = 0;
+  ros_node.param<int>("robot_id", robot_id, 0);
+
   ros_node.setCallbackQueue(&callback_queue);
 
   /* subscriber */
-  ros::Subscriber write_control_table_sub = ros_node.subscribe("/robotis/write_control_table", 5,
+  ros::Subscriber write_control_table_sub = ros_node.subscribe("/robotis_" + std::to_string(robot_id) + "/write_control_table", 5,
                                                                &RobotisController::writeControlTableCallback, this);
-  ros::Subscriber sync_write_item_sub     = ros_node.subscribe("/robotis/sync_write_item", 10,
+  ros::Subscriber sync_write_item_sub     = ros_node.subscribe("/robotis_" + std::to_string(robot_id) + "/sync_write_item", 10,
                                                                &RobotisController::syncWriteItemCallback, this);
-  ros::Subscriber joint_ctrl_modules_sub  = ros_node.subscribe("/robotis/set_joint_ctrl_modules", 10,
+  ros::Subscriber joint_ctrl_modules_sub  = ros_node.subscribe("/robotis_" + std::to_string(robot_id) + "/set_joint_ctrl_modules", 10,
                                                                &RobotisController::setJointCtrlModuleCallback, this);
-  ros::Subscriber enable_ctrl_module_sub  = ros_node.subscribe("/robotis/enable_ctrl_module", 10,
+  ros::Subscriber enable_ctrl_module_sub  = ros_node.subscribe("/robotis_" + std::to_string(robot_id) + "/enable_ctrl_module", 10,
                                                                &RobotisController::setCtrlModuleCallback, this);
-  ros::Subscriber control_mode_sub        = ros_node.subscribe("/robotis/set_control_mode", 10,
+  ros::Subscriber control_mode_sub        = ros_node.subscribe("/robotis_" + std::to_string(robot_id) + "/set_control_mode", 10,
                                                                &RobotisController::setControllerModeCallback, this);
-  ros::Subscriber joint_states_sub        = ros_node.subscribe("/robotis/set_joint_states", 10,
+  ros::Subscriber joint_states_sub        = ros_node.subscribe("/robotis_" + std::to_string(robot_id) + "/set_joint_states", 10,
                                                                &RobotisController::setJointStatesCallback, this);
-  ros::Subscriber enable_offset_sub       = ros_node.subscribe("/robotis/enable_offset", 10,
+  ros::Subscriber enable_offset_sub       = ros_node.subscribe("/robotis_" + std::to_string(robot_id) + "/enable_offset", 10,
                                                                &RobotisController::enableOffsetCallback, this);
 
   ros::Subscriber gazebo_joint_states_sub;
@@ -660,10 +664,10 @@ void RobotisController::msgQueueThread()
                                                  &RobotisController::gazeboJointStatesCallback, this);
 
   /* publisher */
-  goal_joint_state_pub_     = ros_node.advertise<sensor_msgs::JointState>("/robotis/goal_joint_states", 10);
-  present_joint_state_pub_  = ros_node.advertise<sensor_msgs::JointState>("/robotis/present_joint_states", 10);
+  goal_joint_state_pub_     = ros_node.advertise<sensor_msgs::JointState>("/robotis_" + std::to_string(robot_id) + "/goal_joint_states", 10);
+  present_joint_state_pub_  = ros_node.advertise<sensor_msgs::JointState>("/robotis_" + std::to_string(robot_id) + "/present_joint_states", 10);
   current_module_pub_       = ros_node.advertise<robotis_controller_msgs::JointCtrlModule>(
-                                                              "/robotis/present_joint_ctrl_modules", 10);
+                                                              "/robotis_" + std::to_string(robot_id) + "/present_joint_ctrl_modules", 10);
 
   if (gazebo_mode_ == true)
   {
@@ -679,13 +683,13 @@ void RobotisController::msgQueueThread()
   }
 
   /* service */
-  ros::ServiceServer get_joint_module_server = ros_node.advertiseService("/robotis/get_present_joint_ctrl_modules",
+  ros::ServiceServer get_joint_module_server = ros_node.advertiseService("/robotis_" + std::to_string(robot_id) + "/get_present_joint_ctrl_modules",
                                                         &RobotisController::getJointCtrlModuleService, this);
-  ros::ServiceServer set_joint_module_server = ros_node.advertiseService("/robotis/set_present_joint_ctrl_modules",
+  ros::ServiceServer set_joint_module_server = ros_node.advertiseService("/robotis_" + std::to_string(robot_id) + "/set_present_joint_ctrl_modules",
                                                         &RobotisController::setJointCtrlModuleService, this);
-  ros::ServiceServer set_module_server = ros_node.advertiseService("/robotis/set_present_ctrl_modules",
+  ros::ServiceServer set_module_server = ros_node.advertiseService("/robotis_" + std::to_string(robot_id) + "/set_present_ctrl_modules",
                                                         &RobotisController::setCtrlModuleService, this);
-  ros::ServiceServer load_offset_server = ros_node.advertiseService("/robotis/load_offset",
+  ros::ServiceServer load_offset_server = ros_node.advertiseService("/robotis_" + std::to_string(robot_id) + "/load_offset",
                                                         &RobotisController::loadOffsetService, this);
 
   ros::WallDuration duration(robot_->getControlCycle() / 1000.0);
